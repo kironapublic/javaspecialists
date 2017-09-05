@@ -22,33 +22,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>com.kirona.server</groupId>
+    <artifactId>com.kirona.parent.server-SPRING4</artifactId>
+    <version>RELEASE</version>
+    <relativePath>../com.kirona.parent.server/pom.xml</relativePath>
+  </parent>
+
   <groupId>javaspecialists</groupId>
   <artifactId>javaspecialists</artifactId>
-  <version>0.1</version>
+  <version>0.1-kirona</version>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.9</version>
     </dependency>
-
-    <dependency>
-      <groupId>high-scale-lib</groupId>
-      <artifactId>high-scale-lib</artifactId>
-      <version>1.1.2</version>
-      <scope>system</scope>
-      <systemPath>${basedir}/lib/high-scale-lib.jar</systemPath>
-    </dependency>
-
-    <dependency>
-      <groupId>jsr166e</groupId>
-      <artifactId>jsr166e</artifactId>
-      <version>0.1</version>
-      <scope>system</scope>
-      <systemPath>${basedir}/lib/jsr166e.jar</systemPath>
-    </dependency>
-
-
   </dependencies>
 
   <build>
