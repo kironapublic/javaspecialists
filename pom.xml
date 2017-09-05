@@ -22,17 +22,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.kirona.server</groupId>
-    <artifactId>com.kirona.parent.server-SPRING4</artifactId>
-    <version>RELEASE</version>
-    <relativePath>../com.kirona.parent.server/pom.xml</relativePath>
-  </parent>
-
   <groupId>javaspecialists</groupId>
   <artifactId>javaspecialists</artifactId>
   <version>0.1-kirona</version>
-  
+    
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
