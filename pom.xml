@@ -24,7 +24,7 @@
 
   <groupId>javaspecialists</groupId>
   <artifactId>javaspecialists</artifactId>
-  <version>0.1-kirona</version>
+  <version>0.2-kirona</version>
     
   <dependencies>
     <dependency>

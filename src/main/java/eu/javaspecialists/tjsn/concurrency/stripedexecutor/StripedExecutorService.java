@@ -20,6 +20,7 @@ package eu.javaspecialists.tjsn.concurrency.stripedexecutor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
+import java.util.function.Supplier;
 
 /**
  * The StripedExecutorService accepts Runnable/Callable objects
@@ -44,7 +45,7 @@ public class StripedExecutorService extends AbstractExecutorService {
      * The wrapped ExecutorService that will actually execute our
      * tasks.
      */
-    private final ExecutorService executor;
+    private final Supplier<ExecutorService> executor;
 
     /**
      * The lock prevents shutdown from being called in the middle
@@ -89,6 +90,15 @@ public class StripedExecutorService extends AbstractExecutorService {
     }
 
     /**
+     * Added so we can create and pass in a way to get the wrapped executor later on (Spring wiring, for example).
+     * 
+     * @param executor
+     */
+    public StripedExecutorService(Supplier<ExecutorService> executor) {
+      this.executor = executor;
+    }
+    
+    /**
      * The constructor taking executors is private, since we do
      * not want users to shutdown their executors directly,
      * otherwise jobs might get stuck in our queues.
@@ -96,8 +106,8 @@ public class StripedExecutorService extends AbstractExecutorService {
      * @param executor the executor service that we use to execute
      *                 the tasks
      */
-    private StripedExecutorService(ExecutorService executor) {
-        this.executor = executor;
+    private StripedExecutorService(final ExecutorService executor) {
+        this( ()->{ return executor; } );
     }
 
     /**
@@ -176,7 +186,7 @@ public class StripedExecutorService extends AbstractExecutorService {
             if (isStripedObject(task)) {
                 return super.submit(task, result);
             } else { // bypass the serial executors
-                return executor.submit(task, result);
+                return executor.get().submit(task, result);
             }
         } finally {
             lock.unlock();
@@ -196,7 +206,7 @@ public class StripedExecutorService extends AbstractExecutorService {
             if (isStripedObject(task)) {
                 return super.submit(task);
             } else { // bypass the serial executors
-                return executor.submit(task);
+                return executor.get().submit(task);
             }
         } finally {
             lock.unlock();
@@ -239,7 +249,7 @@ public class StripedExecutorService extends AbstractExecutorService {
                 }
                 ser_exec.execute(command);
             } else {
-                executor.execute(command);
+                executor.get().execute(command);
             }
         } finally {
             lock.unlock();
@@ -272,7 +282,7 @@ public class StripedExecutorService extends AbstractExecutorService {
         try {
             state = State.SHUTDOWN;
             if (executors.isEmpty()) {
-                executor.shutdown();
+                executor.get().shutdown();
             }
         } finally {
             lock.unlock();
@@ -293,7 +303,7 @@ public class StripedExecutorService extends AbstractExecutorService {
             for (SerialExecutor ser_ex : executors.values()) {
                 ser_ex.tasks.drainTo(result);
             }
-            result.addAll(executor.shutdownNow());
+            result.addAll(executor.get().shutdownNow());
             return result;
         } finally {
             lock.unlock();
@@ -325,7 +335,7 @@ public class StripedExecutorService extends AbstractExecutorService {
             for (SerialExecutor executor : executors.values()) {
                 if (!executor.isEmpty()) return false;
             }
-            return executor.isTerminated();
+            return executor.get().isTerminated();
         } finally {
             lock.unlock();
         }
@@ -347,7 +357,7 @@ public class StripedExecutorService extends AbstractExecutorService {
             }
             if (remainingTime <= 0) return false;
             if (executors.isEmpty()) {
-                return executor.awaitTermination(
+                return executor.get().awaitTermination(
                         remainingTime, TimeUnit.NANOSECONDS);
             }
             return false;
@@ -371,7 +381,7 @@ public class StripedExecutorService extends AbstractExecutorService {
         executors.remove(stripe);
         terminating.signalAll();
         if (state == State.SHUTDOWN && executors.isEmpty()) {
-            executor.shutdown();
+            executor.get().shutdown();
         }
     }
 
@@ -480,7 +490,7 @@ public class StripedExecutorService extends AbstractExecutorService {
             lock.lock();
             try {
                 if ((active = tasks.poll()) != null) {
-                    executor.execute(active);
+                    executor.get().execute(active);
                     terminating.signalAll();
                 } else {
                     removeEmptySerialExecutor(stripe, this);
